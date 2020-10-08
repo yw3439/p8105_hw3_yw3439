@@ -102,12 +102,59 @@ knitr::kable(fine_order_hr, caption = 'Mean Hour of Day for "Pink Lady Apples an
 
   Mean of hour of day for each week for "Pink Lady Apples" and "Coffee Ice Cream" is shown in the table above. From the table, for "Coffee Ice Cream", the highest mean order hour is `r pull(order_hour, mean_order_hour)[1]` on `r pull(order_hour, order_dow)[1]`. "Pink Lady Apples" shows the highest mean order hour of `r pull(order_hour, mean_order_hour)[8]` on `r pull(order_hour, order_dow)[8]`. Generally, coffee ice cream shows higher mean order hour than pink lady apples for 7 days within a week. 
 
+## Problem 2 Accelerometers
 
+```{r, message=FALSE}
 
+accel_tidy = read_csv("accel_data.csv") %>%
+  janitor::clean_names() %>%
+  mutate(
+    day_type = rep("weekday", 35),
+    day_type = ifelse(day == "Sunday"| day == "Saturday", recode(day_type, "weekday" = "weekend"), "weekday")
+  ) %>%
+  select(-day_id) %>%
+  mutate(
+    day = factor(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                                 "Saturday", "Sunday"))
+  ) %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute_of_the_day",
+    names_prefix = "activity_",
+    values_to = "activity_counts"
+  ) %>%
+  arrange(day)
 
+day_activity = accel_tidy %>%
+  group_by(week, day_type, day) %>%
+  summarize(total_activity = sum(activity_counts))
 
+```
 
+  Accelerometers mainly discusses the study on the physical activity of a 63 year-old male with BMI 25. The whole dataset contains `r ncol(accel_tidy)` variables, `r colnames(accel_tidy)`. 1440 activity counts, for every minute of 24-hour day for total 35 days, are all tidied into two variables, `r colnames(accel_tidy)[4]` and `r colnames(accel_tidy)[5]`, resulting final `r nrow(accel_tidy)` observations.
+  Collecting activity accounts based on days, general physical activity for this participant is maintaining around `r mean(pull(day_activity, total_activity), na.rm=TRUE)`. Across through the whole study period of 35 days, there is no significant difference of his physical activity between weekday and weekend. The maximum of the physical activity is `r filter(day_activity, total_activity == max(pull(day_activity, total_activity))[1]`. There are two abnormal data on Saturday in week 4 and week 5, which only show `r min(pull(day_activity, total_activity))`.
 
+```{r}
+
+accel_tidy %>%
+  mutate(
+    minute_of_the_day = factor(minute_of_the_day, levels = c(1:1440), ordered = TRUE)
+  ) %>%
+  ggplot(aes(x = minute_of_the_day, y = activity_counts, color = day)) +
+  scale_x_discrete(
+    breaks = seq(1, 1440, 60),
+    labels = factor(1:24)
+  ) +
+  geom_line() +
+  labs(
+    title = "24-hour Inspection Activity time courses for each day",
+    x = "Time course for one 24-Hour Day",
+    y = "Activity Counts"
+  )
+
+```
+
+  Based on the plot, from the aspect of 24-hour time course, it is obvious that two major parts of the physical activity for the participant are focusing on around 12pm and 9-11pm. Before 7am, the physical activity is lowest because this time period is sleeping time. From the aspect of days, the physical activity on Sunday is concentrating at noon, and that on Friday is focusing at night. For Saturday, the participant would show mildly higher physical activity at around 5pm.
 
 
 

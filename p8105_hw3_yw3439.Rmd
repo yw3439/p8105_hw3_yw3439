@@ -27,7 +27,7 @@ data("instacart")
 
 aisle = instacart %>%
   group_by(aisle) %>%
-  summarise(ordered_number = n()) %>%
+  summarize(ordered_number = n()) %>%
   arrange(-ordered_number)
 
 aisle %>%
@@ -43,7 +43,67 @@ aisle %>%
 
 ```
 
-   Instacart shows that the `r str_to_title(pull(aisle, aisle)[1])` is the aisle that most items ordered from, with total order of `r pull(aisle, ordered_number)[1]`. Shown in the plot "Ordered Number (>10000) for Each Aisle", there are `r nrow(filter(aisle, ordered_number > 10000))` aisles containing ordered number of items more than 100000. Besides Fresh Vegetables, Fresh Fruits show significantly high items ordered of `r r pull(aisle, ordered_number)[2]`.
+   Instacart shows that the `r str_to_title(pull(aisle, aisle)[1])` is the aisle that most items ordered from, with total order of `r pull(aisle, ordered_number)[1]`. Shown in the plot "Ordered Number (>10000) for Each Aisle", there are `r nrow(filter(aisle, ordered_number > 10000))` aisles containing ordered number of items more than 100000. Besides Fresh Vegetables, `r str_to_title(pull(aisle, aisle)[2])` show significantly high items ordered of `r r pull(aisle, ordered_number)[2]`, than any else aisles.
+
+```{r, message=FALSE}
+
+baking = instacart %>%
+  filter(aisle == "baking ingredients") %>%
+  group_by(aisle, product_id, product_name) %>%
+  summarize(order_number = sum(order_number)) %>%
+  arrange(-order_number) %>%
+  head(3)
+
+dog = instacart %>%
+  filter(aisle == "dog food care") %>%
+  group_by(aisle, product_id, product_name) %>%
+  summarize(order_number = sum(order_number)) %>%
+  arrange(-order_number) %>%
+  head(3) %>%
+  full_join(baking)
+
+most_popular_items = instacart %>%
+  filter(aisle == "packaged vegetables fruits") %>%
+  group_by(aisle, product_id, product_name) %>%
+  summarize(order_number = sum(order_number)) %>%
+  arrange(-order_number) %>%
+  head(3) %>%
+  full_join(dog)
+
+knitr::kable(most_popular_items, caption = 'Three Most Popular Items for "Baking Ingredients", "Dog Food Care", "Packaged Vegetables Fruits')
+```
+
+  As shown in the table above, three most popular items for "Baking Ingredients" are `r pull(most_popular_items, product_name)[7:9]`, with order times of  `r pull(most_popular_items, order_number)[7:9]`, respectively. For "Dog Food Care", three most popular items are `r pull(most_popular_items, product_name)[4:6]`, with order times of `r pull(most_popular_items, order_number)[4:6]`, respectively. For "Packaged Vegetables Fruits", three most popular items are `r pull(most_popular_items, product_name)[1:3]`, with order times of `r pull(most_popular_items, order_number)[1:3]`, respectively.
+
+```{r}
+
+order_hour = instacart %>%
+  select(product_name, order_dow, order_hour_of_day) %>%
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>%
+  mutate(
+    order_dow = as.factor(order_dow),
+    order_dow = recode(order_dow, "0" = "sunday", "1" = "monday", "2" = "tuesday", "3" = "wednesday",
+                       "4" = "thursday", "5" = "friday", "6" = "saturday")
+    ) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_order_hour = mean(order_hour_of_day, na.rm = TRUE)) %>%
+  arrange(-mean_order_hour)
+
+fine_order_hr = order_hour %>%
+  arrange(order_dow) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_order_hour
+  )
+
+knitr::kable(fine_order_hr, caption = 'Mean Hour of Day for "Pink Lady Apples and "Coffee Ice Cream')
+
+```
+
+  Mean of hour of day for each week for "Pink Lady Apples" and "Coffee Ice Cream" is shown in the table above. From the table, for "Coffee Ice Cream", `r filter(order_hour, mean_order_hour)[1]` 
+
+
+
 
 
 

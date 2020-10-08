@@ -7,5 +7,50 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
 ```
+
+
+## Problem 1 Instacart
+
+```{r}
+
+library(p8105.datasets)
+data("instacart")
+
+```
+  The dataset instacart contains `r nrow(instacart)` observations and `r ncol(instacart)` variables, `r colnames(instacart)`. Instacart mainly discusses about details of each order for different customers, including order time, order quantity, reordered condition. Order_dow, order_hour_of_day show order time while placing each order. Reordered condition is mainly introduced in logical variable "reordered", order_number and days_since_prior_order. Also, instacart introduces products information for each order, `r colnames(instacart)[11:15]`. For example, the product, yellow onions and organic butternut squash belong to the aisle of fresh vegetables and the produce department.
+  
+```{r}
+
+aisle = instacart %>%
+  group_by(aisle) %>%
+  summarise(ordered_number = n()) %>%
+  arrange(-ordered_number)
+
+aisle %>%
+  filter(ordered_number > 10000) %>%
+  mutate(
+    aisle = fct_reorder(aisle, ordered_number)
+  ) %>%
+  ggplot(aes(x = ordered_number, y = aisle)) +
+  geom_bar(stat = "identity", width = 1) +
+  labs(title = "Ordered Number (>10000) for Each Aisle",
+       x = "Ordered Number",
+       y = "Aisle Name")
+
+```
+
+   Instacart shows that the `r str_to_title(pull(aisle, aisle)[1])` is the aisle that most items ordered from, with total order of `r pull(aisle, ordered_number)[1]`. Shown in the plot "Ordered Number (>10000) for Each Aisle", there are `r nrow(filter(aisle, ordered_number > 10000))` aisles containing ordered number of items more than 100000. Besides Fresh Vegetables, Fresh Fruits show significantly high items ordered of `r r pull(aisle, ordered_number)[2]`.
+
+
+
+
+
+
+
+
+
 

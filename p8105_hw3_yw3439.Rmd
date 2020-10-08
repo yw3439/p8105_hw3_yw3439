@@ -156,7 +156,14 @@ accel_tidy %>%
 
   Based on the plot, from the aspect of 24-hour time course, it is obvious that two major parts of the physical activity for the participant are focusing on around 12pm and 9-11pm. Before 7am, the physical activity is lowest because this time period is sleeping time. From the aspect of days, the physical activity on Sunday is concentrating at noon, and that on Friday is focusing at night. For Saturday, the participant would show mildly higher physical activity at around 5pm.
 
+## Problem 3 NY NOAA data
 
+```{r}
+
+library(p8105.datasets)
+data("ny_noaa")
+```
+  NY NOAA  mainly presents a database about daily observations on climate in New York City for each day, starting from `r pull(ny_noaa, date)[1]`, containing `r nrow(ny_noaa)
 
 
 

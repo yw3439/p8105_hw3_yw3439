@@ -87,7 +87,7 @@ order_hour = instacart %>%
     ) %>%
   group_by(product_name, order_dow) %>%
   summarize(mean_order_hour = mean(order_hour_of_day, na.rm = TRUE)) %>%
-  arrange(-mean_order_hour)
+  arrange(product_name, -mean_order_hour)
 
 fine_order_hr = order_hour %>%
   arrange(order_dow) %>%
@@ -100,7 +100,9 @@ knitr::kable(fine_order_hr, caption = 'Mean Hour of Day for "Pink Lady Apples an
 
 ```
 
-  Mean of hour of day for each week for "Pink Lady Apples" and "Coffee Ice Cream" is shown in the table above. From the table, for "Coffee Ice Cream", `r filter(order_hour, mean_order_hour)[1]` 
+  Mean of hour of day for each week for "Pink Lady Apples" and "Coffee Ice Cream" is shown in the table above. From the table, for "Coffee Ice Cream", the highest mean order hour is `r pull(order_hour, mean_order_hour)[1]` on `r pull(order_hour, order_dow)[1]`. "Pink Lady Apples" shows the highest mean order hour of `r pull(order_hour, mean_order_hour)[8]` on `r pull(order_hour, order_dow)[8]`. Generally, coffee ice cream shows higher mean order hour than pink lady apples for 7 days within a week. 
+
+
 
 
 

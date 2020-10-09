@@ -162,8 +162,9 @@ accel_tidy %>%
 
 library(p8105.datasets)
 data("ny_noaa")
+  
 ```
-  NY NOAA  mainly presents a database about daily observations on climate in New York City for each day, starting from `r pull(ny_noaa, date)[1]`, containing `r nrow(ny_noaa)
+  NY NOAA  mainly presents a database about daily observations on climate in New York City for each day, starting from `r pull(ny_noaa, date)[1]`, containing `r nrow(ny_noaa)` observations. Observations are focused on several common weather parameters, `r colnames(ny_noaa)[3:7]`, presenting precipitation, snowfalls and temperature in NYC. Each parameter contains lots of missing values, especially for maximum temperature that has `r sum(is.na(ny_noaa$tmax))` missing values. Generally, this dataset needs further tidy steps.
 
 
 

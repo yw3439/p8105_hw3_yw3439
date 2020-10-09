@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(dplyr)
+library(ggplot2)
+library(hexbin)
 ```
 
 
@@ -43,7 +45,7 @@ aisle %>%
 
 ```
 
-   Instacart shows that the `r str_to_title(pull(aisle, aisle)[1])` is the aisle that most items ordered from, with total order of `r pull(aisle, ordered_number)[1]`. Shown in the plot "Ordered Number (>10000) for Each Aisle", there are `r nrow(filter(aisle, ordered_number > 10000))` aisles containing ordered number of items more than 100000. Besides Fresh Vegetables, `r str_to_title(pull(aisle, aisle)[2])` show significantly high items ordered of `r r pull(aisle, ordered_number)[2]`, than any else aisles.
+   Instacart shows that the `r str_to_title(pull(aisle, aisle)[1])` is the aisle that most items ordered from, with total order of `r pull(aisle, ordered_number)[1]`. Shown in the plot "Ordered Number (>10000) for Each Aisle", there are `r nrow(filter(aisle, ordered_number > 10000))` aisles containing ordered number of items more than 100000. Besides Fresh Vegetables, `r str_to_title(pull(aisle, aisle)[2])` show significantly high items ordered of `r pull(aisle, ordered_number)[2]`, than any else aisles.
 
 ```{r, message=FALSE}
 
@@ -132,7 +134,7 @@ day_activity = accel_tidy %>%
 ```
 
   Accelerometers mainly discusses the study on the physical activity of a 63 year-old male with BMI 25. The whole dataset contains `r ncol(accel_tidy)` variables, `r colnames(accel_tidy)`. 1440 activity counts, for every minute of 24-hour day for total 35 days, are all tidied into two variables, `r colnames(accel_tidy)[4]` and `r colnames(accel_tidy)[5]`, resulting final `r nrow(accel_tidy)` observations.
-  Collecting activity accounts based on days, general physical activity for this participant is maintaining around `r mean(pull(day_activity, total_activity), na.rm=TRUE)`. Across through the whole study period of 35 days, there is no significant difference of his physical activity between weekday and weekend. The maximum of the physical activity is `r filter(day_activity, total_activity == max(pull(day_activity, total_activity))[1]`. There are two abnormal data on Saturday in week 4 and week 5, which only show `r min(pull(day_activity, total_activity))`.
+  Collecting activity accounts based on days, general physical activity for this participant is maintaining around `r mean(pull(day_activity, total_activity), na.rm=TRUE)`. Across through the whole study period of 35 days, there is no significant difference of his physical activity between weekday and weekend. The maximum of the physical activity is `r filter(day_activity, total_activity == max(pull(day_activity, total_activity)))[1]`. There are two abnormal data on Saturday in week 4 and week 5, which only show `r min(pull(day_activity, total_activity))`.
 
 ```{r}
 
@@ -166,8 +168,73 @@ data("ny_noaa")
 ```
   NY NOAA  mainly presents a database about daily observations on climate in New York City for each day, starting from `r pull(ny_noaa, date)[1]`, containing `r nrow(ny_noaa)` observations. Observations are focused on several common weather parameters, `r colnames(ny_noaa)[3:7]`, presenting precipitation, snowfalls and temperature in NYC. Each parameter contains lots of missing values, especially for maximum temperature that has `r sum(is.na(ny_noaa$tmax))` missing values. Generally, this dataset needs further tidy steps.
 
+```{r}
 
+ny_climate = ny_noaa %>%
+  janitor::clean_names() %>%
+  separate(date, c("year", "month", "day"))
+```
 
+```{r}
 
+ny_climate %>%
+  mutate(
+    month = factor(month, levels = c("01", "02", "03", "04", "05",
+                                     "06", "07", "08", "09", "10", "11", "12"), labels = month.name),
+    tmax = as.numeric(tmax)/10,
+    tmin = as.numeric(tmin)/10,
+    prcp = prcp/10
+  )
 
+snow = ny_climate %>%
+  mutate(
+    snow = as.factor(snow)
+  ) %>%
+  group_by(snow) %>%
+  summarize(count = n()) %>%
+  arrange(-count)
+```
+ Original dataset uses tenth of the unit for three paraemeters: maximum temperature, minimum temperature and precipitation, which are all changed into reasonable unites through being divided by 10. For snowfalls, except missing values, the most common observed values are `r pull(snow, snow)[1]` with observations of `r pull(snow, count)[1]`.
 
+```{r}
+
+ny_climate %>%
+  filter(month == "January" | month =="July") %>%
+  ggplot(aes(y = tmax)) +
+  geom_boxplot(aes(fill = month), alpha = 0.2) +
+  facet_grid(.~month) +
+  labs(title = "Average Temperature in January and July across Years",
+       x = "Month",
+       y = "Maximum Tempertaure in Degree C")
+
+```
+
+  Shown in the plot, the average maximum temperature in July is significantly higher than that in January, which does make sense because July is in summer and January is in winter. The boxplot for January is wider than the boxplot of July, meaning that the range for maximum temperature in July is smaller than that in January. Outliers exists for both months, which both occupies quite big proportion of the data because the transparent filling of outliers can increase into solid color while approaching to the average maximum temperature.
+
+```{r}
+
+ny_climate %>%
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex() +
+  stat_binhex(na.rm = TRUE) +
+  labs(
+    title = "Maximum Temperature vs. Minimum Temperature",
+    x = "Maximum Daily Temperature (C)",
+    y = "Minimum Daily Temperature (C)"
+  )
+
+ny_climate %>%
+  filter(snow > 0) %>%
+  filter(snow < 100) %>%
+  ggplot(aes(x = snow, color = year)) +
+  geom_density(alpha = 0.2)
+  
+  
+
+```
+  
+  
+  
+  
+  
+  
